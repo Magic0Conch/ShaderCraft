@@ -75,6 +75,9 @@ Shader "Hidden/Sh_FogHeight"
             float _Far;
             half _InScatteringExponent;
             fixed3 _InScatteringColor;
+            half _MinFogOpacity;
+
+            float _RayOriginTerms;
 
             float3 getWorldPositionFromDepth(fixed depth,float3 rayDir){
                 float linearDepth = LinearEyeDepth(depth);
@@ -82,32 +85,86 @@ Shader "Hidden/Sh_FogHeight"
             
             }
 
+            float calcLineIntergralShared(float fogHeightFalloff,float rayDirectionY,float rayOriginalTerms){
+                float falloff = max(-127.0f,fogHeightFalloff * rayDirectionY);
+                float lineIntegeral = (1.0-exp2(-falloff))/falloff;
+                //float lineIntegeralTaylor = log(2.0) - (0.5*pow(2,log(2.0))*falloff;
+                return rayOriginalTerms*lineIntegeral;
+            }
+
+
+
+            fixed4 getExponentialHeightFog(float3 worldPositionRelativeToCamera,float excludeDistance){
+                const float3 worldObserverOrigin = float3(_WorldSpaceCameraPos.x,min(_WorldSpaceCameraPos.y,_EndY),_WorldSpaceCameraPos.z);
+                float3 cameraToReceiver = worldPositionRelativeToCamera;
+                cameraToReceiver.y += _WorldSpaceCameraPos.y-_EndY;
+                float cameraToReceiverLength = length(cameraToReceiver);
+                float excludeIntersectionTime = _StartDistance/cameraToReceiverLength;
+                float rayLength = (1.0-excludeIntersectionTime)*cameraToReceiverLength;
+
+                float cameraToExclusionIntersecionY = excludeIntersectionTime  * cameraToReceiver.y;
+                float exclusionIntersectionY = cameraToExclusionIntersecionY+worldObserverOrigin.y;
+                float exclusionIntersectionToReceiverY = cameraToReceiver.y - cameraToExclusionIntersecionY;
+
+                float exclusionIntersectionToReceiverLengh = (1 - excludeIntersectionTime) * cameraToReceiverLength;
+                float rayDirectionY = cameraToReceiver.y-cameraToExclusionIntersecionY;
+                
+                float exponent = max(-127.0f,_HeightFallOff*(exclusionIntersectionY-_StartY));
+                float rayOriginalTerms = _FogDensity * exp2(-exponent);
+
+                float exponentialHeightLineIntegralShared = calcLineIntergralShared(_HeightFallOff,rayDirectionY,rayOriginalTerms);
+                float exponentialHeightLineIntegral = exponentialHeightLineIntegralShared * rayLength;
+               
+
+                half expFogFactor = max(saturate(exp2(-exponentialHeightLineIntegral)), _MinFogOpacity);
+                fixed3 fogColor = _FogColor.rgb*(1-expFogFactor);
+/**
+                		// Setup a cosine lobe around the light direction to approximate inscattering from the directional light off of the ambient haze;
+		half3 DirectionalLightInscattering = FogStruct.DirectionalInscatteringColor.xyz * pow(saturate(dot(CameraToReceiverNormalized, FogStruct.InscatteringLightDirection.xyz)), FogStruct.DirectionalInscatteringColor.w);
+#endif
+
+		// Calculate the line integral of the eye ray through the haze, using a special starting distance to limit the inscattering to the distance
+		float DirectionalInscatteringStartDistance = FogStruct.InscatteringLightDirection.w;
+		float DirExponentialHeightLineIntegral = ExponentialHeightLineIntegralShared * max(RayLength - DirectionalInscatteringStartDistance, 0.0f);
+		// Calculate the amount of light that made it through the fog using the transmission equation
+		half DirectionalInscatteringFogFactor = saturate(exp2(-DirExponentialHeightLineIntegral));
+		// Final inscattering from the light
+		DirectionalInscattering = DirectionalLightInscattering * (1 - DirectionalInscatteringFogFactor);
+**/
+
+
+                return fixed4(fogColor,expFogFactor);
+            }
+
             fixed4 frag (v2f i) : SV_Target
             {
                 fixed depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv);
                 float3 worldPos = getWorldPositionFromDepth(depth,i.interpolatedRay.xyz);
-
                 float linearDepth = LinearEyeDepth(depth);
-                fixed distanceRatio = saturate((linearDepth-_StartDistance)/_Far);
 
-                float effectZ = (worldPos.y - _StartY) / (_EndY - _StartY);
-                float falloff = effectZ*_HeightFallOff;
-                float fogFactor = (1-exp2(-falloff))/falloff;
-                fixed fogDensity = exp2(-falloff) * _FogDensity;
+                float4 fogInscatteringAndOpacity = getExponentialHeightFog(i.interpolatedRay.xyz*linearDepth,0);
 
-                //fixed f = exp2(-_FogDensity*worldPos.y);
-                half3 frag2sun = normalize(_WorldSpaceLightPos0 - worldPos);
-                half3 eye2sun = normalize(_WorldSpaceCameraPos - worldPos);
-                half inscatterFog = pow(saturate(dot(frag2sun,eye2sun)),_InScatteringExponent);                
-                inscatterFog = inscatterFog*fogFactor;
-                fixed3 inScatterColor =  _InScatteringColor * inscatterFog;
-                fixed3 fogColor = _FogColor.rgb + inScatterColor.rgb;
 
-                fixed fogCoefficient = fogDensity*fogFactor*distanceRatio;
+                //fixed distanceRatio = saturate((linearDepth-_StartDistance)/_Far);
+
+                //float effectZ = (worldPos.y - _StartY) / (_EndY - _StartY);
+                //float falloff = effectZ*_HeightFallOff;
+                //float fogFactor = (1-exp2(-falloff))/falloff;
+                //fixed fogDensity = exp2(-falloff) * _FogDensity;
+
+                ////fixed f = exp2(-_FogDensity*worldPos.y);
+                //half3 frag2sun = normalize(_WorldSpaceLightPos0 - worldPos);
+                //half3 eye2sun = normalize(_WorldSpaceCameraPos - worldPos);
+                //half inscatterFog = pow(saturate(dot(frag2sun,eye2sun)),_InScatteringExponent);                
+                //inscatterFog = inscatterFog*fogFactor;
+                //fixed3 inScatterColor =  _InScatteringColor * inscatterFog;
+                //fixed3 fogColor = _FogColor.rgb + inScatterColor.rgb;
+
+                //fixed fogCoefficient = fogDensity*fogFactor*distanceRatio;
                 
 
                 fixed4 col = tex2D(_MainTex, i.uv);
-                col.rgb = lerp(col.rgb,fogColor,fogCoefficient);
+                col.rgb = col.rgb*fogInscatteringAndOpacity.a + fogInscatteringAndOpacity.rgb;
                 //col.rgb = inscatterFog;
                 return col;
             }

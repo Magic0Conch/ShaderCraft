@@ -10,12 +10,12 @@ public class Fog : PostEffectBase
     private Material matFog;
     private Camera camera;
 
-    [Range(0f, 10f)]
+    [Range(0f, 0.1f)]
     public float fogDensity = 0.2f;
     public Color fogColor = Color.white;
     public float endY;
     public float startY;
-    [Range(0.01f, 10f)]
+    [Range(0.01f, 1f)]
     public float heightFallOff=1;
 
     [Range(0f, 1200f)]
@@ -24,7 +24,7 @@ public class Fog : PostEffectBase
     [Range(0.1f, 10f)]
     public float inScatteringExponent;
 
-
+    public float minFogOpacity;
     public Color inScatteringColor;
     private void Start()
     {
@@ -96,6 +96,7 @@ public class Fog : PostEffectBase
             material.SetFloat("_Far", camera.farClipPlane);
             material.SetFloat("_InScatteringExponent", inScatteringExponent);
             material.SetColor("_InScatteringColor", inScatteringColor);
+            material.SetFloat("_MinFogOpacity", minFogOpacity);
             Graphics.Blit(source, destination,matFog);
 
 
