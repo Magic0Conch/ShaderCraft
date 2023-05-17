@@ -21,7 +21,7 @@ Shader "Hidden/Sh_FogHeight"
             #pragma fragment frag
 
             #include "UnityCG.cginc"
-
+            #include "UnityLightingCommon.cginc"
 
             struct appdata
             {
@@ -77,7 +77,8 @@ Shader "Hidden/Sh_FogHeight"
             fixed3 _InScatteringColor;
             half _MinFogOpacity;
 
-            float _RayOriginTerms;
+            float _DirectionalInscatteringStartDistance;
+            int _DirectionalInscatteringOn;
 
             float3 getWorldPositionFromDepth(fixed depth,float3 rayDir){
                 float linearDepth = LinearEyeDepth(depth);
@@ -117,22 +118,18 @@ Shader "Hidden/Sh_FogHeight"
                
 
                 half expFogFactor = max(saturate(exp2(-exponentialHeightLineIntegral)), _MinFogOpacity);
-                fixed3 fogColor = _FogColor.rgb*(1-expFogFactor);
-/**
-                		// Setup a cosine lobe around the light direction to approximate inscattering from the directional light off of the ambient haze;
-		half3 DirectionalLightInscattering = FogStruct.DirectionalInscatteringColor.xyz * pow(saturate(dot(CameraToReceiverNormalized, FogStruct.InscatteringLightDirection.xyz)), FogStruct.DirectionalInscatteringColor.w);
-#endif
 
-		// Calculate the line integral of the eye ray through the haze, using a special starting distance to limit the inscattering to the distance
-		float DirectionalInscatteringStartDistance = FogStruct.InscatteringLightDirection.w;
-		float DirExponentialHeightLineIntegral = ExponentialHeightLineIntegralShared * max(RayLength - DirectionalInscatteringStartDistance, 0.0f);
-		// Calculate the amount of light that made it through the fog using the transmission equation
-		half DirectionalInscatteringFogFactor = saturate(exp2(-DirExponentialHeightLineIntegral));
-		// Final inscattering from the light
-		DirectionalInscattering = DirectionalLightInscattering * (1 - DirectionalInscatteringFogFactor);
-**/
+                //calc directionalInscattering
+		        half3 directionalLightInscattering = _LightColor0.rgb * pow(saturate(dot(normalize(cameraToReceiver),_WorldSpaceLightPos0.xyz)), _InScatteringExponent);
+		        float directionalInscatteringStartDistance = rayLength;
+		        float dirExponentialHeightLineIntegral = exponentialHeightLineIntegralShared * max(rayLength-_DirectionalInscatteringStartDistance,0.0f);;
+		        half directionalInscatteringFogFactor = saturate(exp2(-dirExponentialHeightLineIntegral));
+		        half3 directionalInscattering = directionalLightInscattering * (1 - directionalInscatteringFogFactor);
 
-
+                //calc finalColor 
+                if(!_DirectionalInscatteringOn)
+                    directionalInscattering = 0;
+                fixed3 fogColor = _FogColor.rgb*(1-expFogFactor) + directionalInscattering;
                 return fixed4(fogColor,expFogFactor);
             }
 

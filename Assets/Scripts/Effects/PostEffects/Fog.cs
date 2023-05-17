@@ -1,9 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.GlobalIllumination;
 
 [RequireComponent(typeof(Camera))]
-public class Fog : PostEffectBase
+public class Fog : PostEffectWithDepth
 {
 
     public Shader shFog;
@@ -15,13 +17,18 @@ public class Fog : PostEffectBase
     public Color fogColor = Color.white;
     public float endY;
     public float startY;
+
+    public bool directionalInscatteringOn;
+
     [Range(0.01f, 1f)]
     public float heightFallOff=1;
 
     [Range(0f, 1200f)]
     public float startDistance=1200;
+    [Range(0f, 1200f)]
+    public float directionalInscatteringStartDistance = 1200;
 
-    [Range(0.1f, 10f)]
+    [Range(0.001f, 10f)]
     public float inScatteringExponent;
 
     public float minFogOpacity;
@@ -30,6 +37,7 @@ public class Fog : PostEffectBase
     {
         Camera.main.depthTextureMode = DepthTextureMode.Depth;
         camera = GetComponent<Camera>();
+        
     }
 
     public Material material
@@ -47,43 +55,8 @@ public class Fog : PostEffectBase
         }
         else
         {
-            Matrix4x4 frustumCorners = Matrix4x4.identity;
 
-            float fov = camera.fieldOfView;
-            float aspect = camera.aspect;
-            float near = camera.nearClipPlane;
-
-
-            float halfHeight = near * Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad);
-            float halfWidth = halfHeight * aspect;
-            Vector3 toRight = camera.transform.right * halfHeight * aspect;
-            Vector3 toTop = camera.transform.up * halfHeight;
-
-
-            Vector3 topLeft = camera.transform.forward * near + toTop - toRight;
-            float scale = topLeft.magnitude / near;
-
-            topLeft.Normalize();
-            topLeft *= scale;
-
-            Vector3 topRight = toTop + toRight + camera.transform.forward * near;
-            topRight.Normalize();
-            topRight *= scale;
-
-            Vector3 bottomLeft = -toRight - toTop + camera.transform.forward * near;
-            bottomLeft.Normalize();
-            bottomLeft *= scale;
-
-            Vector3 bottomRight = -toTop + toRight + camera.transform.forward * near;
-            bottomRight.Normalize();
-            bottomRight *= scale;
-
-            frustumCorners.SetRow(0, bottomLeft);
-            frustumCorners.SetRow(1, bottomRight);
-            frustumCorners.SetRow(2, topRight);
-            frustumCorners.SetRow(3, topLeft);
-
-            material.SetMatrix("_FrustumCornersRay", frustumCorners);
+            material.SetMatrix("_FrustumCornersRay", getFrustumCorners());
 
             Matrix4x4 vpMatrix = camera.projectionMatrix * camera.worldToCameraMatrix;
             material.SetMatrix("_INV_VP_MATRIX", vpMatrix.inverse);
@@ -97,6 +70,8 @@ public class Fog : PostEffectBase
             material.SetFloat("_InScatteringExponent", inScatteringExponent);
             material.SetColor("_InScatteringColor", inScatteringColor);
             material.SetFloat("_MinFogOpacity", minFogOpacity);
+            material.SetFloat("_DirectionalInscatteringStartDistance",directionalInscatteringStartDistance);
+            material.SetInt("_DirectionalInscatteringOn", Convert.ToInt16(directionalInscatteringOn));
             Graphics.Blit(source, destination,matFog);
 
 
