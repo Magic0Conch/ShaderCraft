@@ -87,6 +87,7 @@ Shader "Hidden/Sh_FogHeight"
             }
 
             float calcLineIntergralShared(float fogHeightFalloff,float rayDirectionY,float rayOriginalTerms){
+                //intergrate along the fog (distanceIntersection to receiver)
                 float falloff = max(-127.0f,fogHeightFalloff * rayDirectionY);
                 float lineIntegeral = (1.0-exp2(-falloff))/falloff;
                 //float lineIntegeralTaylor = log(2.0) - (0.5*pow(2,log(2.0))*falloff;
@@ -110,6 +111,7 @@ Shader "Hidden/Sh_FogHeight"
                 float exclusionIntersectionToReceiverLengh = (1 - excludeIntersectionTime) * cameraToReceiverLength;
                 float rayDirectionY = cameraToReceiver.y-cameraToExclusionIntersecionY;
                 
+                //cam to startDistanceIntersection 
                 float exponent = max(-127.0f,_HeightFallOff*(exclusionIntersectionY-_StartY));
                 float rayOriginalTerms = _FogDensity * exp2(-exponent);
 
@@ -122,7 +124,7 @@ Shader "Hidden/Sh_FogHeight"
                 //calc directionalInscattering
 		        half3 directionalLightInscattering = _LightColor0.rgb * pow(saturate(dot(normalize(cameraToReceiver),_WorldSpaceLightPos0.xyz)), _InScatteringExponent);
 		        float directionalInscatteringStartDistance = rayLength;
-		        float dirExponentialHeightLineIntegral = exponentialHeightLineIntegralShared * max(rayLength-_DirectionalInscatteringStartDistance,0.0f);;
+		        float dirExponentialHeightLineIntegral = exponentialHeightLineIntegralShared * max(rayLength-_DirectionalInscatteringStartDistance,0.0f);
 		        half directionalInscatteringFogFactor = saturate(exp2(-dirExponentialHeightLineIntegral));
 		        half3 directionalInscattering = directionalLightInscattering * (1 - directionalInscatteringFogFactor);
 
