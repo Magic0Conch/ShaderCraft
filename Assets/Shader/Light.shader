@@ -175,9 +175,10 @@ Shader "CityShader/Sh_Light"
                 else if(_PatternShape<5.5){
                     //pattern = plotLine(i.localPos.xz);
                 }
-                else if(_PatternWidth<6.5){
+                else if(_PatternShape<6.5){
                     //pattern = plotGridAndDot(i.localPos.xz);
                 }
+
                 pattern = i.localPos.y/_Height>1-_OutterWidth?half2(1,1):pattern;
 
                 fixed4 backColor = fixed4((1-pattern.x) * _Color.rgb,(1-pattern.x)* _Color.a*i.alpha);
