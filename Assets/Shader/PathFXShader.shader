@@ -6,6 +6,8 @@ Shader "Unlit/PathFXShader"
         _BackColor("Back Tint",COLOR) = (1,1,1,1)
         _FlashFrequency("FlashFrequency",Range(0.0,5)) = 1
         _OutterWidth("Outter Width",Range(0,1)) = 0
+        _OutterColor("Outter Color",COLOR) = (1,1,1,1)
+        _OutterGradientLowerBound("Outter Gradient Lower Bound",Range(0,1))=1
         _PatternDensity("Pattern Density",Range(0,10)) = 1
         _PatternWidth("Pattern Width",Range(0,1)) = 1        
         _PatternColor("Pattern Color",COLOR) = (1,1,1,1)
@@ -55,6 +57,8 @@ Shader "Unlit/PathFXShader"
             half _PatternShape;
             half _AnimSpeed;
             half _PathWidth;
+            fixed _OutterGradientLowerBound;
+            fixed4 _OutterColor;
 
             fixed2 plotTexture(half2 uv){
                 uv.y = (uv.y+_Time.y*_AnimSpeed)*_PatternDensity;
@@ -97,10 +101,6 @@ Shader "Unlit/PathFXShader"
                 return pattern;
             }
 
-            void plotOutterWidth(){
-            
-            }
-
             v2f vert (appdata v)
             {
                 v2f o;
@@ -111,16 +111,21 @@ Shader "Unlit/PathFXShader"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                
-                fixed2 pattern=plotPattern(i.uv);
+                half2 uv = half2((i.uv.x-_OutterWidth*0.5f)/(1-_OutterWidth),i.uv.y);
+                fixed2 pattern=uv.x>=0&&uv.x<=1?plotPattern(uv):fixed2(0.0f,0.0f);
 
                 fixed4 backColor = fixed4((1 - pattern.x)*_BackColor.rgb,(1-pattern.x)*_BackColor.a);
                 fixed4 patternColor = fixed4(pattern.x*_PatternColor.rgb,pattern.y*_PatternColor.a);
-                
+                fixed4 outterColor = fixed4(.0f,.0f,.0f,.0f);
+                fixed t = i.uv.x/_OutterWidth*2.0f;
+                outterColor = uv.x<0?fixed4(lerp(_OutterColor.rgb*_OutterColor.a,_OutterColor.rgb*_OutterColor.a*_OutterGradientLowerBound,t).rgb,lerp(_OutterColor.a,_OutterGradientLowerBound,t)):outterColor;
+                t = (1.0f-i.uv.x)/_OutterWidth*2.0f;
+                outterColor = uv.x>1?fixed4(lerp(_OutterColor.rgb*_OutterColor.a,_OutterColor.rgb*_OutterColor.a*_OutterGradientLowerBound,t).rgb,lerp(_OutterColor.a,_OutterGradientLowerBound,t)):outterColor;
+
                 half brightness = sin(_Time.z*_FlashFrequency)+1.5;
                 patternColor.rgb*=brightness;
 
-                fixed4 fragColor = saturate(backColor + patternColor);
+                fixed4 fragColor = saturate(backColor + patternColor+outterColor);
                 return fragColor;
             }
             ENDCG
