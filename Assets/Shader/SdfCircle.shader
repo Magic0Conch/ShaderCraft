@@ -1,4 +1,4 @@
-Shader "CityShader/sdfOutline"
+Shader "Hidden/CityShader/sdfOutline"
 {
     Properties
     {

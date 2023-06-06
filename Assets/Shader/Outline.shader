@@ -1,6 +1,6 @@
 // Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-Shader "CityShader/Sh_Outline"
+Shader "Hidden/CityShader/Outline"
 {
 
     Properties

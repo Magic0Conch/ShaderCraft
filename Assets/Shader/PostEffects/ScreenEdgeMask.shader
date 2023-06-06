@@ -1,4 +1,4 @@
-Shader "Hidden/ScreenEdgeMask"
+Shader "Hidden/CityShader/ScreenEdgeMask"
 {
     Properties
     {

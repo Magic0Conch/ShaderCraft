@@ -1,4 +1,4 @@
-Shader "CityShader/Sh_GaussianBlur"
+Shader "Hidden/CityShader/GaussianBlur"
 {
     Properties
     {

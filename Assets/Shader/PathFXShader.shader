@@ -1,4 +1,4 @@
-Shader "Unlit/PathFXShader"
+Shader "Hidden/CityShader/PathFXShader"
 {
     Properties
     {

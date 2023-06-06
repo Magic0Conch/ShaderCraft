@@ -1,6 +1,6 @@
 // Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-Shader "CityShader/Sh_Light"
+Shader "Hidden/CityShader/Sh_Light"
 {
     Properties
     {

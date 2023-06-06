@@ -1,4 +1,4 @@
-Shader "CityShader/Sh_Postprocessing_BriSatAndCon"
+Shader "Hidden/CityShader/Postprocessing_BriSatAndCon"
 {
     Properties
     {

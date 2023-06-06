@@ -163,7 +163,7 @@ Shader "Hidden/Sh_FogHeight"
                 
 
                 fixed4 col = tex2D(_MainTex, i.uv);
-                col.rgb = col.rgb*fogInscatteringAndOpacity.a + fogInscatteringAndOpacity.rgb;
+                col.rgb = saturate(col.rgb*fogInscatteringAndOpacity.a + fogInscatteringAndOpacity.rgb);
                 //col.rgb = inscatterFog;
                 return col;
             }

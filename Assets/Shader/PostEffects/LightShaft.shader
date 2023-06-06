@@ -1,4 +1,4 @@
-Shader "Hidden/LightShaft"
+Shader "Hidden/CityShader/LightShaft"
 {
     Properties
     {

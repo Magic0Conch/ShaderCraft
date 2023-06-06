@@ -35,6 +35,7 @@ public class Bloom : PostEffectBase
 
             RenderTexture buffer0 = RenderTexture.GetTemporary(rtH, rtW, 0);
             buffer0.filterMode = FilterMode.Bilinear;
+            //buffer0.filterMode = FilterMode.Bilinear;
 
             Graphics.Blit(source, buffer0, material,0);
             for(int i = 0; i < iterations; i++)

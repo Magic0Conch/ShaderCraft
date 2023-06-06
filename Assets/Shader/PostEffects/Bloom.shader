@@ -1,4 +1,4 @@
-Shader "CityShader/Sh_Bloom"
+Shader "Hidden/CityShader/Bloom"
 {
     Properties
     {
@@ -92,9 +92,9 @@ Shader "CityShader/Sh_Bloom"
             ENDCG
         }
 
-        UsePass "CityShader/Sh_GaussianBlur/GAUSSIAN_BLUR_VERTICAL"
+        UsePass "Hidden/CityShader/GaussianBlur/GAUSSIAN_BLUR_VERTICAL"
 
-        UsePass "CityShader/Sh_GaussianBlur/GAUSSIAN_BLUR_HORIZONTAL"
+        UsePass "Hidden/CityShader/GaussianBlur/GAUSSIAN_BLUR_HORIZONTAL"
 
         Pass
         {

@@ -1,4 +1,4 @@
-Shader "Unlit/ColorTintSuface"
+Shader "Hidden/CityShader/ColorTintSuface"
 {
     Properties
     {

@@ -1,12 +1,8 @@
-Shader "Hidden/CityShader/Sh_Fog"
+Shader "Hidden/CityShader/Composite"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        //_CameraDepthTexture ("Depth Texture", 2D) = "white" {}
-        _FogDensity("Fog Density",FLOAT) = 1.0
-        _FogColor("Fog COLOR",COLOR) = (0,1,0,1)
-        
     }
     SubShader
     {
@@ -42,21 +38,16 @@ Shader "Hidden/CityShader/Sh_Fog"
             }
 
             sampler2D _MainTex;
-            sampler2D _CameraDepthTexture;
-            float _FogDensity;
-            fixed4 _FogColor;
-            float4x4 INV_P_MATRIX;
+            sampler2D _StencilTex;
+            sampler2D _BlurTex;
 
             fixed4 frag (v2f i) : SV_Target
             {
-                fixed depthNDC = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv);
-                float4 H = float4(i.uv.x*2-1,i.uv.y*2-1,depthNDC*2-1,1);
-                float4 D = mul(INV_P_MATRIX,H);
-                fixed4 col = tex2D(_MainTex, i.uv);
-                fixed f = exp(-_FogDensity*LinearEyeDepth(depthNDC));
-                col.rgb = col*f + (1-f)*_FogColor;
-                
-                return col;
+                fixed4 mainTexColor = tex2D(_MainTex, i.uv);
+                fixed4 blurColor = tex2D(_BlurTex, i.uv);
+
+                fixed4 fragColor = saturate(mainTexColor + blurColor);
+                return fragColor;
             }
             ENDCG
         }
