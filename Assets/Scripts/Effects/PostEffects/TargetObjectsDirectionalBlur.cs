@@ -16,7 +16,7 @@ public class TargetObjectsDirectionalBlur : PostEffectBase
     [SerializeField]
     private RenderTexture stencilBuffer = null;
 
-    [Range(0.0f, 6.0f)]
+    //[Range(0.0f, 6.0f)]
     public float angle;
 
     [Range(0.0f, 5.0f)]
@@ -37,11 +37,35 @@ public class TargetObjectsDirectionalBlur : PostEffectBase
     [Range(0.0f,10.0f)]
     public float brightnessMagnification;
 
+    [Range(0.0f, 0.1f)]
+    public float verticalOffset;
+
+    public bool maskVisible;
+    public Color baseTintColor;
+
+    [Range(0.0f, 1.0f)]
+    public float blurRatio=1.0f;
+    //[Range(0.0f, 50.0f)]
+    public float brightnessFallOffRatio = 5.0f;
+
     private Material _blurMaterial;
     private Material blurMaterial
     {
         get { return _blurMaterial = CheckShaderAndCreateMaterial(blurShader, _blurMaterial); }
     }
+
+    #region edgeMaskShader
+    [Range(0,128)]
+    public float edgeExponent;
+    public Shader edgeMaskShader;
+    private Material _edgeMaskMaterial;
+    private Material edgeMaskMaterial
+    {
+        get { return _edgeMaskMaterial = CheckShaderAndCreateMaterial(edgeMaskShader, _edgeMaskMaterial); }
+    }
+
+
+    #endregion
 
     #region compisitingShader
     private static Shader _compShader;
@@ -70,9 +94,9 @@ public class TargetObjectsDirectionalBlur : PostEffectBase
             return _compMaterial;
         }
     }
+    private GameObject shaderCameraGO = null;
     #endregion
     
-    private GameObject shaderCameraGO = null;
     
     void ResetStencilBufferAndSetTarget()
     {
@@ -130,22 +154,29 @@ public class TargetObjectsDirectionalBlur : PostEffectBase
         shaderCamera.Render();
     }
 
+    void GenerateEdgeMask(RenderTexture source, RenderTexture destination)
+    {
+        edgeMaskMaterial.SetFloat("_EdgeExponent", edgeExponent);
+        Graphics.Blit(source, destination, edgeMaskMaterial, 0);
+    }
+
     void DirectionalBlur(RenderTexture source, RenderTexture destination)
     {
         int rtW = (int)(source.width / downSample);
         int rtH = (int)(source.height / downSample);
-        
         float sinVal = (Mathf.Sin(angle) * blurRadius * 0.05f) / iterations;
         float cosVal = (Mathf.Cos(angle) * blurRadius * 0.05f) / iterations;
         blurMaterial.SetFloat("_Iterations", iterations);
         blurMaterial.SetVector("_Direction", new Vector2(sinVal, cosVal));
         blurMaterial.SetColor("_BlurColor", blurColor);
         blurMaterial.SetFloat("_BrightnessMagnification", brightnessMagnification);
+        blurMaterial.SetFloat("_VerticalOffset", verticalOffset);
         
         //pass 0
         RenderTexture buffer0 = RenderTexture.GetTemporary(rtW, rtH, 0, source.format);
         buffer0.filterMode = FilterMode.Bilinear;
         Graphics.Blit(source, buffer0, blurMaterial, 0);
+
 
         //pass 1
         RenderTexture buffer1 = RenderTexture.GetTemporary(rtW, rtH, 0, source.format);
@@ -186,14 +217,23 @@ public class TargetObjectsDirectionalBlur : PostEffectBase
         {
             RenderTexture blurTexture = RenderTexture.GetTemporary(source.width, source.height, 0, source.format);
             DirectionalBlur(stencilBuffer, blurTexture);
+            RenderTexture edgeMaskTexture = RenderTexture.GetTemporary(source.width, source.height, 0, source.format);
+            GenerateEdgeMask(stencilBuffer, edgeMaskTexture);
             // Compose
+            compMaterial.SetFloat("_MaskVisible", maskVisible?1.0f:0.0f);
             compMaterial.SetTexture("_StencilTex", stencilBuffer);
             compMaterial.SetTexture("_BlurTex", blurTexture);
+            compMaterial.SetTexture("_MaskTex", edgeMaskTexture);
+            compMaterial.SetColor("_BaseTintColor", baseTintColor);
+            compMaterial.SetFloat("_BlurRatio", blurRatio);
+            compMaterial.SetFloat("_BrightnessFallOffRatio", brightnessFallOffRatio);
+
             Graphics.Blit(source, destination, compMaterial);
 
             //Graphics.Blit(source, destination, compMaterial);
 
             // Cleanup
+            RenderTexture.ReleaseTemporary(edgeMaskTexture);
             RenderTexture.ReleaseTemporary(blurTexture);
             if (stencilBuffer != null)
             {

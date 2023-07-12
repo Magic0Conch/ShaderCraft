@@ -12,13 +12,17 @@ Shader "Hidden/CityShader/DirectionalBlur"
 
         CGINCLUDE
         #include "UnityCG.cginc"
-        
+        #include "../StdLib.hlsl"
         sampler2D _MainTex;
+        sampler2D _EdgeMaskTexture;
         half _Iterations;
         half2 _Direction;
         fixed4 _BlurColor;
         half _BrightnessMagnification;
+        half _VerticalOffset = 0.0f;
 
+        half _EdgeExponent;
+        
         struct appdata
         {
             float4 vertex : POSITION;
@@ -65,15 +69,21 @@ Shader "Hidden/CityShader/DirectionalBlur"
 
             fixed4 fragBlur(v2f i):SV_Target
             {
-                fixed4 texCol = tex2D(_MainTex,i.uv);
                 half4 fragColor = half4(.0,.0,.0,.0);
-                for(int k = -_Iterations;k<_Iterations;k++){
-                    half2 sampleUVs = i.uv - _Direction*k;
-                    fragColor+=tex2D(_MainTex,sampleUVs);
+                fixed4 texCol = tex2D(_MainTex,i.uv);
+                //if(dot(texCol.rgb,fixed3(.3f, .59f, .11f))>0.2f){
+                //    fragColor = texCol;
+                //}
+                //else{
+                fixed mask = tex2D(_EdgeMaskTexture,i.uv).r;
+                for(int k = 0.0f;k<_Iterations;k++){
+                    half2 sampleUVs = i.uv - _Direction*k + half2(0.0f,_VerticalOffset);
+                    fragColor+=tex2Dlod(_MainTex,half4(sampleUVs.xy,.0f,.0f));
                 }
-                fragColor/=_Iterations*2.0f;
-                float luminance = max(dot(fragColor.rgb,fixed3(.3f, .59f, .11f)),6.10352e-5);
-                fragColor = saturate(luminance * _BlurColor*_BrightnessMagnification);
+                fragColor/=(_Iterations);
+                //}
+                float luminance = calculateBrightness(fragColor.rgb);
+                fragColor = saturate(luminance * _BlurColor*_BrightnessMagnification*mask);
                 return fragColor;
             }
 

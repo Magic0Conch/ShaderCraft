@@ -16,6 +16,9 @@ public class DirectionalBlur : PostEffectBase
     [Range(1.0f,10.0f)]
     public float downSample;
 
+    [Range(0.0f, 5.0f)]
+    public float verticalOffset;
+
     public Shader shader;
     private Material _material;
     
@@ -38,6 +41,7 @@ public class DirectionalBlur : PostEffectBase
             float cosVal = (Mathf.Cos(angle)*blurRadius*0.05f)/iterations;
             material.SetFloat("_Iterations", iterations);
             material.SetVector("_Direction", new Vector2(sinVal, cosVal));
+            material.SetFloat("_VerticalOffset",verticalOffset);
             //pass 1
             Graphics.Blit(buffer0,destination , material, 1);
 
