@@ -53,11 +53,14 @@ public class PathCreator: MonoBehaviour
     {
         GameObject pathGameObject = new GameObject();
         List<Vector3> pathKeyPointPositions = new List<Vector3>();
-        foreach(GameObject pathPoint in pathPoints)
-        {
-            pathKeyPointPositions.Add(pathPoint.transform.position);
-            Destroy(pathPoint);
-        }
+        //foreach(GameObject pathPoint in pathPoints)
+        //{
+        //    pathKeyPointPositions.Add(pathPoint.transform.position);
+        //    Destroy(pathPoint);
+        //}
+        pathKeyPointPositions.Add(new Vector3(10,0,10));
+        pathKeyPointPositions.Add(new Vector3(10,0,-10));
+        pathKeyPointPositions.Add(new Vector3(20,0,-10));
         pathPoints.Clear();
         PathRenderer pathRenderer = pathGameObject.AddComponent<PathRenderer>();
         pathGameObject.AddComponent<MeshFilter>();

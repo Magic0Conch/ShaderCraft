@@ -30,7 +30,7 @@ public class Bloom : PostEffectBase
         {
             material.SetFloat("_LuminanceThreshold", luminanceThreshold);
 
-            int rtW = source.width/downSample;
+            int rtW = source.width / downSample;
             int rtH = source.height / downSample;
 
             RenderTexture buffer0 = RenderTexture.GetTemporary(rtH, rtW, 0);

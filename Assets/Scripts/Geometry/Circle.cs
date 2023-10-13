@@ -5,7 +5,6 @@ public class Circle : GeometryBase
 {
     public float radius = 1f;
     public int segments = 32;
-    public bool filled = true;
     public Shader shCircle;
 
 
@@ -67,7 +66,6 @@ public class Circle : GeometryBase
                 triangles[(i - 1) * 3 + 1] = i;
                 triangles[(i - 1) * 3 + 2] = 1;
             }
-
             angle += angleStep;
         }
 

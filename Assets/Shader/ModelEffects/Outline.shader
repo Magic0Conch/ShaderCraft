@@ -69,7 +69,6 @@ Shader "Hidden/CityShader/Outline"
             half _AnimSpeed;
             half brightness;
             
-
             v2f vert (appdata v)
             {   
                 v2f o;
@@ -224,18 +223,14 @@ Shader "Hidden/CityShader/Outline"
                 float4 vertex : SV_POSITION;
             };
 
-            float _Outline;
             fixed3 _OutlineColor;
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
+
 
             v2f vert (appdata v)
             { 
                 v2f o;
 
                 o.vertex = UnityObjectToClipPos( v.vertex);
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-
                 return o; 
             }
 

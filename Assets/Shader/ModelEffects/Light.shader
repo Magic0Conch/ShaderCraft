@@ -24,7 +24,7 @@ Shader "Hidden/CityShader/Sh_Light"
     }
     SubShader
     {
-        //TODO :true or True?
+        
         Tags {"Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
         LOD 100
 
@@ -32,7 +32,7 @@ Shader "Hidden/CityShader/Sh_Light"
         Pass
         {
             Tags {"LightMode"="ForwardBase"}
-            ZWrite On
+            ZWrite Off
             Cull Off
 
             //Normal
@@ -51,8 +51,7 @@ Shader "Hidden/CityShader/Sh_Light"
             
             #pragma vertex vert
             #pragma fragment frag
-            // make fog work
-            #pragma multi_compile_fog
+            
 
             #include "UnityCG.cginc"
             #include "Lighting.cginc"
@@ -95,7 +94,7 @@ Shader "Hidden/CityShader/Sh_Light"
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.localPos = v.vertex.xyz;
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+                o.uv = v.uv;
                 float a = clamp(1-v.uv.y,0.0,1.0);                
                 if(_Fade)
                     o.alpha = a;
@@ -151,7 +150,6 @@ Shader "Hidden/CityShader/Sh_Light"
             fixed4 frag (v2f i) : SV_Target
             {
 
-                fixed4 albedo = _Color;
                 fixed2 pattern;
 
                 half2 xz = half2(i.localPos.x,i.localPos.z);
