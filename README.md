@@ -8,5 +8,8 @@ The currently implemented effects include:
 3. Zoning function [![Zone Edit]()](https://onedrive.live.com/embed?cid=41A7953B88DE463A&resid=41a7953b88de463a%2110607&authkey=AG2-t6XzX_7Vrao) [![Prefab Effect]()](https://onedrive.live.com/embed?cid=41A7953B88DE463A&resid=41a7953b88de463a%2110605&authkey=APtkTx2q-uInV2o)
 4. Path FX [![Path FX]()](https://onedrive.live.com/embed?cid=41A7953B88DE463A&resid=41a7953b88de463a%2111742&authkey=AKZDguL_qLvQv-Q)
 5. Vertical Light [![Vertical Light]()](https://onedrive.live.com/embed?cid=41A7953B88DE463A&resid=41A7953B88DE463A%2111743&authkey=AOiF5ljETnnQTQM)
+6. Jitter [![Jitter]()](https://onedrive.live.com/embed?resid=41a7953b88de463a%2111929&authkey=!AFQWlCJ-ADeNg6M)
+7. RGBSPlitWavejitter [![RGBSPlitWavejitter]()](https://onedrive.live.com/embed?resid=41a7953b88de463a%2111931&authkey=!AFQWlCJ-ADeNg6M)
+8. portal2D [![RGBSPlitWavejitter]()](https://onedrive.live.com/embed?resid=41a7953b88de463a%2111935&authkey=%21AFQWlCJ-ADeNg6M&width=677&height=610))
 
 The project's GitHub wiki serves as a documentation resource where details and implementation notes are recorded. It primarily serves as a memo for reference purposes.
